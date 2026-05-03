@@ -33,8 +33,11 @@ void keyboard_handler(void) {
     if (scancode < sizeof(scancode_to_ascii)) {
         char c = scancode_to_ascii[scancode];
         if (c != 0) {
-            key_buffer[buffer_end] = c;
-            buffer_end = (buffer_end + 1) % 256;
+            uint8 next_end = (buffer_end + 1) % 256;
+            if (next_end != buffer_start) {
+                key_buffer[buffer_end] = c;
+                buffer_end = next_end;
+            }
         }
     }
 }

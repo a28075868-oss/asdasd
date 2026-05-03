@@ -27,13 +27,19 @@ void screen_putchar(char c, uint8 color) {
     } else if (c == '\r') {
         cursor_x = 0;
     } else if (c == '\t') {
-        cursor_x = (cursor_x + 4) & ~(4 - 1);
+        uint8 spaces = 4 - (cursor_x % 4);
+        for (uint8 i = 0; i < spaces; i++) {
+            if (cursor_x < VGA_WIDTH) {
+                vga_buffer[cursor_y * VGA_WIDTH + cursor_x] = (COLOR_BLACK << 12) | (color << 8) | ' ';
+                cursor_x++;
+            }
+        }
     } else if (c == '\b') {
         if (cursor_x > 0) {
             cursor_x--;
             vga_buffer[cursor_y * VGA_WIDTH + cursor_x] = (COLOR_BLACK << 12) | (color << 8) | ' ';
         }
-    } else {
+    } else if (c >= 32 && c <= 126) {
         vga_buffer[cursor_y * VGA_WIDTH + cursor_x] = (COLOR_BLACK << 12) | (color << 8) | c;
         cursor_x++;
     }
@@ -43,9 +49,9 @@ void screen_putchar(char c, uint8 color) {
         cursor_y++;
     }
     
-    if (cursor_y >= VGA_HEIGHT) {
+    while (cursor_y >= VGA_HEIGHT) {
         screen_scroll();
-        cursor_y = VGA_HEIGHT - 1;
+        cursor_y--;
     }
     
     screen_set_cursor(cursor_x, cursor_y);
@@ -58,13 +64,17 @@ void screen_write(const char* str, uint8 color) {
 }
 
 void screen_scroll(void) {
+    uint16 blank = (COLOR_BLACK << 12) | (COLOR_WHITE << 8) | ' ';
+    
     for (int i = 0; i < (VGA_HEIGHT - 1) * VGA_WIDTH; i++) {
         vga_buffer[i] = vga_buffer[i + VGA_WIDTH];
     }
     
     for (int i = (VGA_HEIGHT - 1) * VGA_WIDTH; i < VGA_HEIGHT * VGA_WIDTH; i++) {
-        vga_buffer[i] = (COLOR_BLACK << 12) | (COLOR_WHITE << 8) | ' ';
+        vga_buffer[i] = blank;
     }
+    
+    cursor_y = VGA_HEIGHT - 1;
 }
 
 void screen_set_cursor(uint8 x, uint8 y) {

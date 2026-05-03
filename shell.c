@@ -48,9 +48,10 @@ void shell_main(void) {
             } else if (c == '\b') {
                 if (cmd_pos > 0) {
                     cmd_pos--;
+                    cmd_buffer[cmd_pos] = '\0';
                     screen_putchar('\b', COLOR_WHITE);
                 }
-            } else if (cmd_pos < CMD_BUFFER_SIZE - 1) {
+            } else if (c >= 32 && c <= 126 && cmd_pos < CMD_BUFFER_SIZE - 1) {
                 cmd_buffer[cmd_pos++] = c;
                 screen_putchar(c, COLOR_WHITE);
             }

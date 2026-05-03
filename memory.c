@@ -17,11 +17,18 @@ void memory_init(void) {
 }
 
 void* kmalloc(uint32 size) {
+    if (size == 0) return NULL;
+    
+    // Выравнивание по 4 байта
+    if (size % 4 != 0) {
+        size += 4 - (size % 4);
+    }
+    
     block_t* current = heap_start;
     
     while (current != NULL) {
         if (!current->used && current->size >= size) {
-            if (current->size > size + sizeof(block_t)) {
+            if (current->size > size + sizeof(block_t) + 16) {
                 block_t* new_block = (block_t*)((uint32)current + sizeof(block_t) + size);
                 new_block->size = current->size - size - sizeof(block_t);
                 new_block->used = 0;
